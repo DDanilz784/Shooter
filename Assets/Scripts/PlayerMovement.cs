@@ -13,7 +13,6 @@ public class PlayerMovement : MonoBehaviour
     private Vector3 moveInput;
     private Vector3 velocity;
     private CharacterController characterController;
-    [SerializeField] private bool isJumping;
     private float targetFov;
 
     [Header("For Look")]
@@ -71,12 +70,7 @@ public class PlayerMovement : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Space) && IsGrounded())
         {
-            velocity.y = Mathf.Sqrt(jumpForce * -2f * Physics.gravity.y);
-            isJumping = true;
-        }
-        else if(IsGrounded())
-        {
-            isJumping = false;
+            velocity.y = Mathf.Sqrt(jumpForce * -2 * Physics.gravity.y);
         }
 
         velocity.y += Physics.gravity.y * Time.deltaTime;
@@ -113,13 +107,11 @@ public class PlayerMovement : MonoBehaviour
 
     private bool IsGrounded()
     {
-        return Physics.Raycast(transform.position, -Vector3.up, characterController.height / 2 + 0.2f);
+        return Physics.Raycast(transform.position, -Vector3.up, characterController.height / 2);
     }
 
     private bool OnSlope()
     {
-        if (isJumping)
-            return false;
 
         RaycastHit hit;
 

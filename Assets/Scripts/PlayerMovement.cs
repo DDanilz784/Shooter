@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+
 public class PlayerMovement : MonoBehaviour
 {
     [Header("For Movement")]
@@ -9,11 +10,11 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float jumpForce;
     [SerializeField] private float slopeForce = 5f;
     [SerializeField] private float slopeForceRayLength = 1.5f;
+    [HideInInspector] public float targetFov;
     private float moveSpeed;
     private Vector3 moveInput;
     private Vector3 velocity;
     private CharacterController characterController;
-    private float targetFov;
 
     [Header("For Look")]
     public float mouseSensitivity;
@@ -21,11 +22,23 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private Camera camera;
 
     [Header("For Footsteps")]
+    [SerializeField] private AudioClip[] MetalFootsteps;
+    [SerializeField] private LayerMask whatIsMetal;
+    [Space]
+    [SerializeField] private AudioClip[] GrassFootsteps;
+    [SerializeField] private LayerMask whatIsGrass;
+    [Space]
+    [SerializeField] private AudioClip[] ConcreteFootsteps;
+    [SerializeField] private LayerMask whatIsConcrete;
+    [Space]
+    [SerializeField] private AudioClip[] GravelFootsteps;
+    [SerializeField] private LayerMask whatIsGravel;
+    private string onMaterial;
     private AudioSource audioSource;
-    [SerializeField] private AudioClip[] footstepsSFX;
     private float footstepsSpeed;
     private bool onGroundLastFrame = false;
     private bool readyForNextFootstep = true;
+
 
     private void Start()
     {
@@ -39,6 +52,7 @@ public class PlayerMovement : MonoBehaviour
         Movement();
         MouseLook();
         LandSound();
+        CheckMaterial();
     }
     
     private void Movement()
@@ -54,6 +68,7 @@ public class PlayerMovement : MonoBehaviour
             moveSpeed = Mathf.Lerp(moveSpeed, walkSpeed, 5f * Time.deltaTime);
             targetFov = 80f;
         }
+
         camera.fieldOfView = Mathf.Lerp(camera.fieldOfView, targetFov, 2.5f * Time.deltaTime);
 
         float x = Input.GetAxisRaw("Horizontal");
@@ -92,6 +107,10 @@ public class PlayerMovement : MonoBehaviour
                 characterController.Move(Vector3.down * characterController.height / 2 * slopeForce * Time.deltaTime);
             }
         }
+        else
+        {
+            targetFov = 80f;
+        }
     }
 
     private void MouseLook()
@@ -110,9 +129,16 @@ public class PlayerMovement : MonoBehaviour
         return Physics.Raycast(transform.position, -Vector3.up, characterController.height / 2);
     }
 
+    private void CheckMaterial()
+    {
+        if(Physics.Raycast(transform.position, -Vector3.up, characterController.height * 2, whatIsMetal.value))
+            onMaterial = "metal";
+        if (Physics.Raycast(transform.position, -Vector3.up, characterController.height * 2, whatIsConcrete.value))
+            onMaterial = "concrete";
+    }
+
     private bool OnSlope()
     {
-
         RaycastHit hit;
 
         if (Physics.Raycast(transform.position, Vector3.down, out hit, characterController.height / 2 * slopeForceRayLength))
@@ -126,7 +152,10 @@ public class PlayerMovement : MonoBehaviour
         if(readyForNextFootstep)
         {
             readyForNextFootstep = false;
-            audioSource.PlayOneShot(footstepsSFX[Random.Range(0, footstepsSFX.Length)]);
+            if(onMaterial == "metal")
+                audioSource.PlayOneShot(MetalFootsteps[Random.Range(0, MetalFootsteps.Length)]);
+            if (onMaterial == "concrete")
+                audioSource.PlayOneShot(ConcreteFootsteps[Random.Range(0, ConcreteFootsteps.Length)]);
             yield return new WaitForSeconds(footstepsSpeed);
             readyForNextFootstep = true;
         }
@@ -135,7 +164,10 @@ public class PlayerMovement : MonoBehaviour
     {
         if (IsGrounded() && !onGroundLastFrame)
         {
-            audioSource.PlayOneShot(footstepsSFX[Random.Range(0, footstepsSFX.Length)]);
+            if (onMaterial == "metal")
+                audioSource.PlayOneShot(MetalFootsteps[Random.Range(0, MetalFootsteps.Length)]);
+            if (onMaterial == "concrete")
+                audioSource.PlayOneShot(ConcreteFootsteps[Random.Range(0, ConcreteFootsteps.Length)]);
         }
         onGroundLastFrame = IsGrounded();
     }

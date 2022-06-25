@@ -8,7 +8,8 @@ public class AK47 : MonoBehaviour
     [SerializeField] private float shootInterval;
     [SerializeField, Range(1, 100)] private int maxDamage;
     [SerializeField, Range(1, 100)] private int minDamage;
-    [SerializeField] private float spread;
+    [SerializeField] private float defaultSpread;
+    private float spread;
 
     [Header("Sway Settings")]
     [SerializeField] private float smooth;
@@ -35,17 +36,15 @@ public class AK47 : MonoBehaviour
     [SerializeField] private Vector3 aimPosition;
     private Vector3 targetPosition;
 
-
-
     void Start()
     {
         readyForShoot = true;
         audioSource = GetComponent<AudioSource>();
         targetRotation = transform.rotation;
         animator = GetComponentInChildren<Animator>();
+        spread = defaultSpread;
     }
 
-    // Update is called once per frame
     void Update()
     {
         Sway();
@@ -57,13 +56,11 @@ public class AK47 : MonoBehaviour
         float mouseX = Input.GetAxisRaw("Mouse X") * multiplier;
         float mouseY = Input.GetAxisRaw("Mouse Y") * multiplier;
 
-        // calculate target rotation
         Quaternion rotationX = Quaternion.AngleAxis(-mouseY, Vector3.right);
         Quaternion rotationY = Quaternion.AngleAxis(mouseX, Vector3.up);
         
         Quaternion targetRotation = rotationX * rotationY;
 
-        // rotate 
         transform.localRotation = Quaternion.Slerp(transform.localRotation, targetRotation, smooth * Time.deltaTime);
     }
 
